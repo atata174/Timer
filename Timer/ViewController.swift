@@ -10,34 +10,37 @@ import UIKit
 class ViewController: UITableViewController {
     
     private let cellID = "cell"
-    private var countdownList: [String] = ["one","two","three"]
+    var countdownList: [Task] = []
+    
+    var timer: Timer?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
         tableView.register(CountdownCell.self, forCellReuseIdentifier: CountdownCell.myCell)
         tableView.register(FirstCell.self, forCellReuseIdentifier: FirstCell.myCell)
-        
         setupNavigationBar()
-        
+        createTimer()
     }
 
     private func setupNavigationBar() {
         title = "Мульти таймер"
         navigationController?.navigationBar.prefersLargeTitles = false
-        
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            barButtonSystemItem: .add,
-            target: self,
-            action: #selector(secondPage))
     }
     
-    @objc private func secondPage() {
-        let second = TimerViewController()
-        present(second, animated: true)
+    func createTimer() {
+      if timer == nil {
+            timer = Timer.scheduledTimer(timeInterval: 1.0,
+                                         target: self,
+                                         selector: #selector(updateTimer),
+                                         userInfo: nil,
+                                         repeats: true)
+        RunLoop.current.add(timer!, forMode: .common)
+      }
     }
-    
 }
+
+// MARK: - TableView
 
 extension ViewController {
     
@@ -49,41 +52,37 @@ extension ViewController {
             return countdownList.count
         }
     }
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         if indexPath.section == 0 {
             let customCell = tableView.dequeueReusableCell(withIdentifier: FirstCell.myCell, for: indexPath) as! FirstCell
+            FirstCell.countdownList = countdownList
+            customCell.delegate = self
             return customCell
         }
         else {
             let cell = tableView.dequeueReusableCell(withIdentifier: CountdownCell.myCell, for: indexPath) as! CountdownCell
+            cell.task = countdownList[indexPath.row]
             return cell
         }
         
+    }
+    
+    @objc func updateTimer() {
+        guard let visibleRowsIndexPaths = tableView.indexPathsForVisibleRows else {
+            return
+        }
         
-//        let cell = tableView.dequeueReusableCell(withIdentifier: cellID, for: indexPath)
-//        return cell
-//        var content = cell.defaultContentConfiguration()
-//        let count = countdownList[indexPath.row]
-//        content.text = count
-//        cell.contentConfiguration = content
-//
-//        let customCell = tableView.dequeueReusableCell(withIdentifier: FirstCell.myCell, for: indexPath) as! FirstCell
-//        var content = customCell.defaultContentConfiguration()
-//        let count = countdownList[indexPath.row]
-//        content.text = count
-//        customCell.contentConfiguration = content
-//        print(customCell.description)
-//        return customCell
-//
-//        switch (indexPath.section){
-//        case 0:
-//            return customCell
-//        case 1:
-//            return cell
-//        default:
-//            break
-//        }
+        for indexPath in visibleRowsIndexPaths {
+            if let cell = tableView.cellForRow(at: indexPath) as? CountdownCell {
+                cell.configure()
+                if cell.task!.timer <= 0 {
+                    countdownList.remove(at: indexPath.row)
+                    tableView.reloadData()
+                }
+            }
+        }
     }
     
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -102,7 +101,7 @@ extension ViewController {
         if indexPath.section == 0 {
             return 200
         } else {
-            return 30
+            return 35
         }
     }
 }

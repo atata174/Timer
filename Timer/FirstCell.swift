@@ -9,8 +9,9 @@ import UIKit
 
 class FirstCell: UITableViewCell {
     
-    static let myCell = "myIdentifier"
-
+    static let myCell = "firstCell"
+    static var countdownList: [Task] = []
+    var delegate: ViewController?
     
     private lazy var timerTitleTextField: UITextField = {
         let textfield = UITextField()
@@ -23,6 +24,7 @@ class FirstCell: UITableViewCell {
         let textfield = UITextField()
         textfield.placeholder = "Время в секундах"
         textfield.borderStyle = .roundedRect
+        textfield.keyboardType = .numberPad
         return textfield
     } ()
 
@@ -73,7 +75,14 @@ class FirstCell: UITableViewCell {
     }
     
     @objc private func addTimer() {
-        print("Button")
+        guard let title = timerTitleTextField.text else { return }
+        guard let timerTF = timerCountTextField.text else { return }
+        
+        let timer = Int(timerTF) ?? 0
+        
+        delegate?.countdownList.append(Task(name: title, timer: timer))
+        delegate?.tableView.reloadData()
     }
+    
     
 }
