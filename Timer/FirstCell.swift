@@ -36,7 +36,6 @@ class FirstCell: UITableViewCell {
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
         button.layer.cornerRadius = 10
         button.addTarget(self, action: #selector(addTimer), for: .touchUpInside)
-
         return button
     } ()
 
@@ -77,12 +76,19 @@ class FirstCell: UITableViewCell {
     @objc private func addTimer() {
         guard let title = timerTitleTextField.text else { return }
         guard let timerTF = timerCountTextField.text else { return }
-        
-        let timer = Int(timerTF) ?? 0
+        guard let timer = Int(timerTF) else { return }
         
         delegate?.countdownList.append(Task(name: title, timer: timer))
         delegate?.tableView.reloadData()
+        
     }
     
     
 }
+
+extension FirstCell: UITextFieldDelegate {
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        delegate?.view.endEditing(true)
+        }
+}
+
